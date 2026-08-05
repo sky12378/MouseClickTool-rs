@@ -1,7 +1,0 @@
-
-<Solution>
-  <Project Path="App/App.csproj" />
-  <Project Path="AppMini/AppMini.csproj" />
-  <Project Path="MouseClickTool/MouseClickTool.csproj" />
-  <Project Path="EasyGzip/EasyGzip.csproj" />
-</Solution>

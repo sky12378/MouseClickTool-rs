@@ -1,94 +1,130 @@
-# MouseClickTool
+# MouseClickTool — 鼠标连点器 (Rust / egui)
 
-<img src="https://fastly.jsdelivr.net/gh/lalakii/MouseClickTool/img/MouseClickTool_round.png" alt="MouseClickTool Logo" width="64" />
+一个纯 Rust 实现的轻量级鼠标连点器，基于 **egui / eframe** 构建，零手写 FFI，开箱即用。
 
-[![MouseClickTool Latest Version](https://img.shields.io/github/v/release/lalakii/MouseClickTool?logo=github)](https://github.com/lalakii/MouseClickTool/releases)
-[![Downloads](https://img.shields.io/github/downloads/lalakii/MouseClickTool/total)](https://github.com/lalakii/MouseClickTool/releases)
-[![MouseClickTool.exe Windows Program](https://img.shields.io/badge/windows-.exe-0078D4?logo=windows)](https://mouseclicktool.sourceforge.io/)
+> 参考「鼠大侠」交互风格重新设计界面，功能对齐经典鼠标连点器：单击、长按、滚轮、定时触发、全局热键、脚本引擎，一个不少。
 
-[ [English](./README_en.md) | [简体中文](./README.md) ]
+## ✨ 功能特性
 
-> 简单好用的鼠标连点器，玩游戏需要鼠标连点，在网上找了好多鼠标连点器，有的居然还要收费...
->
-> 一向穷苦的我感觉为此花钱很不值得，索性自己写了个。。。
+- 🖱️ **多种动作**：左键单击 / 右键单击 / 左键长按 / 右键长按 / 中键点击 / 滚轮滚动 / 启动外部程序 / 执行脚本
+- ⏱️ **自定义间隔**：毫秒级精度，支持 ±20% 随机扰动，模拟真人操作
+- 🔢 **点击次数**：可设有限次数或无限连点
+- ⌨️ **全局热键**：F1–F12 / Home / End 一键开始/停止（后台也能切换）
+- ⏰ **定时触发**：指定 h/m/s 时间自动开始
+- 📜 **脚本引擎**：`.msck` 脚本文件，支持延时、坐标点击、滚轮、进程启动等指令
+- 🌙 **深色模式**：自动跟随系统主题
+- 🌐 **中英双语**：界面一键切换
+- 📝 **运行日志**：实时显示执行状态与错误信息
+- 💾 **配置持久化**：设置自动保存，下次启动自动恢复
 
-## 功能介绍
+## 🖼️ 界面预览
 
-- 支持切换鼠标左/右键点击/长按点击/滚轮滚动
-- 支持自定义点击间隔，单位是毫秒
-- 支持自定义热键
-- 支持指定时间触发 / 定时启动外部程序
-- 自动记忆配置参数，配置文件存储在“我的文档”目录，不污染注册表
-- 已适配深色模式
-- 已添加随机扰动，避免被检测
-- 自定义脚本(Beta) [如何编写脚本?](https://github.com/lalakii/MouseClickTool?tab=readme-ov-file#%E7%BC%96%E5%86%99%E8%87%AA%E5%AE%9A%E4%B9%89%E8%84%9A%E6%9C%AC)
-
-## 下载
-
-[本地下载](https://github.com/lalakii/MouseClickTool/releases) | [123 云盘](https://www.123865.com/s/jE3Sjv-eDxxd) | [蓝奏云](https://a01.lanzout.com/b0hdp19ub) **密码：2dfc**
-
-<img src="https://fastly.jsdelivr.net/gh/lalakii/MouseClickTool/img/MouseClickTool.png?v=2.0" alt="Screenshot of MouseClickTool"/>
-
-## 编写自定义脚本
-
-MouseClickTool 脚本文件，文件后缀名为"*.msck"
-
-**注意事项**
-
-  + 注释使用'#'开头
-  + 注释应当另起一行，不要和代码混在一起
-  + 代码所在的行，不应出现多余空格
-  + 文件内的空行不会影响脚本执行，为了便于阅读可以多加空行
-
-  [查看Demo脚本示例](./Scripts/demo.msck)
-
-```c
-# 修改窗体标题栏上的文字, 1个参数
-title("Your title")
-
-# 等待n毫秒, 1个参数
-delay(ms)
-
-# 鼠标左键单击, 2个参数，x,y坐标(坐标允许传递null,即当前坐标)
-left_click(x,y)
-
-# 鼠标右键单击, 2个参数, x,y坐标(坐标允许传递null,即当前坐标)
-right_click(x,y)
-
-# 左键长按, 3个参数, x,y坐标(坐标允许传递null,即当前坐标), type可选1(按下)或0(松开) 
-# 长按时需要注意顺序, 必须先按下再松开, 搭配delay可以实现长按的时间
-# 如果不添加delay, 相当于一次普通单击
-left_click_long(x,y,type)
-
-# 右键长按, 3个参数, x,y坐标(坐标允许传递null,即当前坐标), type可选1(按下)或0(松开)
-right_click_long(x,y,type)
-
-# 鼠标滚轮滚动, 1个参数, value可以为是正数或负数, 分别是向上或向下滚动
-mouse_wheel(value)
-
-# 启动程序, 1个参数, fileName表示程序完整路径, 可携带参数
-create_process("fileName")
-
-# 结束当前脚本, 无参数, 脚本默认循环执行, 需要循环执行时不要添加
-once()
-
-# 结束进程, 无参数, 直接退出连点器
-exit()
+```
+┌──────────────────────────────┐
+│ MouseClickTool 鼠标连点器  ●就绪│
+├──────────────────────────────┤
+│ 动作类型  [左键单击 / Left Click]│
+│ 点击间隔  [100] ms  ☑随机扰动   │
+│ 点击次数  [0] (0 = 无限)        │
+│ 全局热键  [F8] (点击开始切换)    │
+│ ☑ 定时触发 [0h 0m 0s]           │
+│ ☑ 记录日志                     │
+│ ┌─ 运行日志 ───────────────┐  │
+│ │ 14:00:00 已开始…           │  │
+│ └──────────────────────────┘  │
+│         [  🟦 开始  🟦 ]        │
+└──────────────────────────────┘
 ```
 
-## 常见问题
+## 🚀 快速开始
 
-如何退出？如果鼠标点击频率过快无法停下来，请先让程序窗口到前台（ALT+TAB），然后按 ALT+F4 关闭程序。
+### 环境要求
 
-如果有软件无法被点击，尝试以管理员身份或者TrustedInstaller特权运行此软件。
+- Rust 1.75+（[rustup.rs](https://rustup.rs) 安装）
+- Windows 10/11（其他平台未测试）
 
-这里附上一个提权工具: [M2TeamArchived/NSudo](https://github.com/M2TeamArchived/NSudo/releases/)
+### 构建运行
 
-设置热键时留意是否会和其他程序冲突。
+```bash
+# Debug 构建
+cargo build
 
-如果需要测试连点器速度，我知道这些网站：
+# Release 构建（推荐，体积小、性能好）
+cargo build --release
 
-- [点击速度测试 10 秒](https://cps-check.com/cn/)
-- [CPS 测试 - 鼠标点击速度测试](https://www.arealme.com/click-speed-test/cn/)
+# 直接运行
+cargo run --release
+```
 
-## By lalaki.cn
+Release 产物位于 `target/release/mouse-click-tool.exe`，可单独拷贝到任意目录使用。
+
+## 📖 使用说明
+
+| 配置项 | 说明 |
+|--------|------|
+| **动作类型** | 左键单击 / 右键单击 / 左键长按 / 右键长按 / 中键点击 / 滚轮 / 启动程序 / 执行脚本 |
+| **点击间隔** | 每次操作之间的间隔（毫秒），范围 1–600000 |
+| **随机扰动** | 勾选后实际间隔在设定值 ±20% 内随机浮动 |
+| **点击次数** | 执行次数上限，`0` 表示无限连点 |
+| **全局热键** | F1–F12 / Home / End，点击开始/停止按钮切换连点状态 |
+| **定时触发** | 设置 h/m/s，到达指定时间后自动开始 |
+| **启动程序 / 脚本** | 选择动作类型后输入可执行文件路径或 `.msck` 脚本路径 |
+
+### 全局热键
+
+连点运行期间，按下已注册的全局热键（如 `F8`）即可**随时停止**，无需切换窗口。
+
+## 📜 脚本语法 (.msck)
+
+支持在「动作类型 = 执行脚本」时加载 `.msck` 脚本文件，逐行执行指令：
+
+| 指令 | 说明 | 示例 |
+|------|------|------|
+| `title("...")` | 设置窗口标题 | `title("Demo")` |
+| `delay(ms)` | 延时 | `delay(500)` |
+| `left_click(x, y)` | 左键单击指定坐标 | `left_click(100, 200)` |
+| `right_click(x, y)` | 右键单击指定坐标 | `right_click(300, 400)` |
+| `left_click_long(x, y, type)` | 左键长按（type 见下） | `left_click_long(100, 200, 0)` |
+| `right_click_long(x, y, type)` | 右键长按 | `right_click_long(300, 400, 1)` |
+| `mouse_wheel(v)` | 滚轮滚动（正/负） | `mouse_wheel(3)` |
+| `create_process("path")` | 启动外部程序 | `create_process("notepad.exe")` |
+| `once()` | 仅执行一次（默认循环） | `once()` |
+| `exit()` | 立即退出脚本 | `exit()` |
+
+> `#` 开头为注释行；`type` 参数控制长按行为（0 = 按下，1 = 释放）。
+> 参考示例：`Scripts/demo.msck`、`Scripts/demo_en.msck`
+
+## 💾 配置文件
+
+设置保存为 exe 同级目录下的 `mouse_click_tool.json`（UTF-8），删除该文件即可恢复默认设置。
+
+## 🛠️ 技术栈
+
+- [egui / eframe](https://github.com/emilk/egui) 0.35 — 纯 Rust GUI（glow 渲染后端）
+- [enigo](https://github.com/enigo-rs/enigo) 0.6 — 鼠标输入模拟
+- [global-hotkey](https://github.com/tauri-apps/global-hotkey) 0.8 — 全局热键
+- serde / serde_json — 配置序列化
+
+## 📁 目录结构
+
+```
+├── src/
+│   ├── main.rs      # GUI 界面与主逻辑（egui）
+│   ├── config.rs    # 配置持久化 (JSON)
+│   └── script.rs    # .msck 脚本解析引擎
+├── Scripts/         # 示例脚本 (.msck)
+├── Cargo.toml
+└── README.md
+```
+
+## 🤝 贡献
+
+欢迎提交 Issue 与 PR。Bug 反馈请使用 [Issue 模板](.github/ISSUE_TEMPLATE/)。
+
+## 📄 License
+
+[MIT](LICENSE) — 详见 `LICENSE` 文件。
+
+---
+
+**免责声明**：本工具仅用于自动化个人工作流等合法用途，请勿用于游戏作弊或违反软件服务条款的操作。使用本工具产生的任何后果由使用者自行承担。

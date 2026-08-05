@@ -1,10 +1,13 @@
-﻿# ignore
-bin/
-.vs/
-obj/
-MouseClickTool.resx
-main.resx
-MouseClickTool.csproj.user
-GzExe.csproj.user
-output/
-*.def
+# Rust 构建产物
+/target
+**/*.rs.bk
+*.pdb
+
+# C# 原项目备份（本地归档，不入库）
+/MouseClickTool-csharp-backup/
+
+# 日志与临时文件
+*.log
+
+# 本地工作记忆（不入库）
+.workbuddy/
