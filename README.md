@@ -1,5 +1,7 @@
 # MouseClickTool — 鼠标连点器 (Rust / egui)
 
+**English** | [中文](README.md) — [English Version](README_en.md)
+
 一个纯 Rust 实现的轻量级鼠标连点器，基于 **egui / eframe** 构建，零手写 FFI，开箱即用。
 
 > 参考「鼠大侠」交互风格重新设计界面，功能对齐经典鼠标连点器：单击、长按、滚轮、定时触发、全局热键、脚本引擎，一个不少。
