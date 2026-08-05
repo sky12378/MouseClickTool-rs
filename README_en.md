@@ -119,7 +119,7 @@ Settings are stored in `mouse_click_tool.json` next to the executable (UTF-8). D
 
 ## 🤝 Contributing
 
-Issues and PRs are welcome. For bug reports, please use the [Issue template](.github/ISSUE_TEMPLATE/).
+Issues and PRs are welcome.
 
 ## 📄 License
 

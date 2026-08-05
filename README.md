@@ -121,7 +121,7 @@ Release 产物位于 `target/release/mouse-click-tool.exe`，可单独拷贝到�
 
 ## 🤝 贡献
 
-欢迎提交 Issue 与 PR。Bug 反馈请使用 [Issue 模板](.github/ISSUE_TEMPLATE/)。
+欢迎提交 Issue 与 PR。
 
 ## 📄 License
 
