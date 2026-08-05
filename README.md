@@ -86,14 +86,14 @@ Release 产物位于 `target/release/mouse-click-tool.exe`，可单独拷贝到�
 | `delay(ms)` | 延时 | `delay(500)` |
 | `left_click(x, y)` | 左键单击指定坐标 | `left_click(100, 200)` |
 | `right_click(x, y)` | 右键单击指定坐标 | `right_click(300, 400)` |
-| `left_click_long(x, y, type)` | 左键长按（type 见下） | `left_click_long(100, 200, 0)` |
+| `left_click_long(x, y, type)` | 左键长按（type 见下） | `left_click_long(100, 200, 1)` |
 | `right_click_long(x, y, type)` | 右键长按 | `right_click_long(300, 400, 1)` |
 | `mouse_wheel(v)` | 滚轮滚动（正/负） | `mouse_wheel(3)` |
 | `create_process("path")` | 启动外部程序 | `create_process("notepad.exe")` |
 | `once()` | 仅执行一次（默认循环） | `once()` |
 | `exit()` | 立即退出脚本 | `exit()` |
 
-> `#` 开头为注释行；`type` 参数控制长按行为（0 = 按下，1 = 释放）。
+> `#` 开头为注释行；`type` 参数控制长按行为（1 = 按下，0 = 松开），按下/松开必须成对使用。
 > 参考示例：`Scripts/demo.msck`、`Scripts/demo_en.msck`
 
 ## 💾 配置文件

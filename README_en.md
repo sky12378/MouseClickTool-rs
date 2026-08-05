@@ -84,14 +84,14 @@ Load a `.msck` script file via "Action = Run Script"; commands are executed line
 | `delay(ms)` | Wait for a duration | `delay(500)` |
 | `left_click(x, y)` | Left-click at coordinates | `left_click(100, 200)` |
 | `right_click(x, y)` | Right-click at coordinates | `right_click(300, 400)` |
-| `left_click_long(x, y, type)` | Left-click and hold (see type below) | `left_click_long(100, 200, 0)` |
+| `left_click_long(x, y, type)` | Left-click and hold (see type below) | `left_click_long(100, 200, 1)` |
 | `right_click_long(x, y, type)` | Right-click and hold | `right_click_long(300, 400, 1)` |
 | `mouse_wheel(v)` | Scroll the wheel (positive/negative) | `mouse_wheel(3)` |
 | `create_process("path")` | Launch an external program | `create_process("notepad.exe")` |
 | `once()` | Run only once (default is loop) | `once()` |
 | `exit()` | Exit the script immediately | `exit()` |
 
-> Lines starting with `#` are comments; the `type` parameter controls hold behavior (`0` = press, `1` = release).
+> Lines starting with `#` are comments; the `type` parameter controls hold behavior (`1` = press, `0` = release); press and release must be used in pairs.
 > See examples: `Scripts/demo.msck`, `Scripts/demo_en.msck`
 
 ## 💾 Configuration
