@@ -6,7 +6,9 @@ use std::fs;
 use std::path::PathBuf;
 
 /// 应用配置（与 C# 原版功能一一对应）
+/// `#[serde(default)]`：旧版配置缺字段时按 Default 补，避免整体回退丢配置
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct Config {
     /// 点击间隔（毫秒）
     pub interval: u64,
@@ -52,8 +54,13 @@ impl Default for Config {
 }
 
 impl Config {
-    /// 配置文件路径（exe 所在目录）
+    /// 配置文件路径（exe 所在目录；双击/快捷方式/命令行任意 CWD 启动均一致）
     pub fn path() -> PathBuf {
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(dir) = exe.parent() {
+                return dir.join("mouse_click_tool.json");
+            }
+        }
         PathBuf::from("mouse_click_tool.json")
     }
 

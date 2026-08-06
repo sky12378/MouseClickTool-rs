@@ -112,8 +112,10 @@ fn worker(cfg: Config, cancel: Arc<AtomicBool>, shared: Arc<Mutex<Shared>>, ctx:
         }
     };
 
-    // 定时触发：等待到目标时间
-    let target_secs = cfg.trig_h as u64 * 3600 + cfg.trig_m as u64 * 60 + cfg.trig_s as u64;
+    // 定时触发：等待到目标时间（h/m/s 防配置超界，clamp 到合法范围）
+    let target_secs = cfg.trig_h.min(23) as u64 * 3600
+        + cfg.trig_m.min(59) as u64 * 60
+        + cfg.trig_s.min(59) as u64;
     if target_secs > 0 {
         let now = now_seconds_of_day();
         let wait = if target_secs > now {
@@ -156,6 +158,8 @@ fn worker(cfg: Config, cancel: Arc<AtomicBool>, shared: Arc<Mutex<Shared>>, ctx:
     let unrestricted = cfg.count == 0;
     let mut count: u64 = 0;
     let mut pressed = false; // 长按已按下标志
+    let mut script_hold_l = false; // 脚本 left_click_long 按下状态（防卡键）
+    let mut script_hold_r = false; // 脚本 right_click_long 按下状态（防卡键）
     let right = cfg.action == 1 || cfg.action == 3;
     let long_press = cfg.action == 2 || cfg.action == 3;
     let mouse_wheel = cfg.action == 4 || cfg.action == 5;
@@ -199,9 +203,11 @@ fn worker(cfg: Config, cancel: Arc<AtomicBool>, shared: Arc<Mutex<Shared>>, ctx:
                 }
                 script::ScriptCmd::LeftLong(pos, press) => {
                     long_pos(&mut enigo, pos, &cfg, Button::Left, *press);
+                    script_hold_l = *press;
                 }
                 script::ScriptCmd::RightLong(pos, press) => {
                     long_pos(&mut enigo, pos, &cfg, Button::Right, *press);
+                    script_hold_r = *press;
                 }
                 script::ScriptCmd::Wheel(v) => {
                     let _ = enigo.scroll(*v, Axis::Vertical);
@@ -259,10 +265,18 @@ fn worker(cfg: Config, cancel: Arc<AtomicBool>, shared: Arc<Mutex<Shared>>, ctx:
         ctx.request_repaint();
     }
 
-    // 长按释放
+    // 长按释放（普通长按模式）
     if long_press && pressed {
         let b = if right { Button::Right } else { Button::Left };
         let _ = enigo.button(b, Direction::Release);
+    }
+    // 脚本长按残留释放（防止脚本 left_click_long/right_click_long 按下后
+    // 因 exit()/停止/异常退出而卡键）
+    if script_hold_l {
+        let _ = enigo.button(Button::Left, Direction::Release);
+    }
+    if script_hold_r {
+        let _ = enigo.button(Button::Right, Direction::Release);
     }
 
     let mut sh = shared.lock().unwrap();
@@ -331,18 +345,24 @@ impl App {
         install_cjk_font(&cc.egui_ctx);
         let cfg = Config::load();
         let ctx = cc.egui_ctx.clone();
+        let shared = Arc::new(Mutex::new(Shared {
+            running: false,
+            remaining: 0,
+            logs: vec![t(true, "就绪，点击开始", "Ready. Press Start").to_string()],
+        }));
         let hotkey = HotKey::new(None, hotkey_code(&cfg.hotkey));
         let manager = GlobalHotKeyManager::new().ok();
         if let Some(m) = &manager {
-            let _ = m.register(hotkey.clone());
+            if let Err(e) = m.register(hotkey.clone()) {
+                shared.lock().unwrap().logs.push(format!(
+                    "⚠️ 热键 {} 注册失败: {:?}（可能被占用）",
+                    cfg.hotkey, e
+                ));
+            }
         }
         App {
             cfg,
-            shared: Arc::new(Mutex::new(Shared {
-                running: false,
-                remaining: 0,
-                logs: vec![t(true, "就绪，点击开始", "Ready. Press Start").to_string()],
-            })),
+            shared,
             cancel: Arc::new(AtomicBool::new(false)),
             hotkey_manager: manager,
             hotkey,
@@ -354,7 +374,13 @@ impl App {
         if let Some(m) = &self.hotkey_manager {
             let _ = m.unregister(self.hotkey.clone());
             let hk = HotKey::new(None, hotkey_code(&self.cfg.hotkey));
-            let _ = m.register(hk.clone());
+            if let Err(e) = m.register(hk.clone()) {
+                self.shared
+                    .lock()
+                    .unwrap()
+                    .logs
+                    .push(format!("⚠️ 热键 {} 注册失败: {:?}", self.cfg.hotkey, e));
+            }
             self.hotkey = hk;
         }
     }
