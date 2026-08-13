@@ -70,6 +70,46 @@ fn hotkey_code(name: &str) -> Code {
     }
 }
 
+// ---- 开机自启（注册表 HKCU Run，用户级、无需管理员；调系统 reg.exe，零 FFI）----
+const RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
+const RUN_VALUE: &str = "MouseClickTool";
+
+/// 读取自启状态（以注册表实际为准，兼容用户手动修改）
+fn autostart_enabled() -> bool {
+    std::process::Command::new("reg")
+        .args(["query", &format!(r"HKCU\{}", RUN_KEY), "/v", RUN_VALUE])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
+/// 设置自启（enable = true 写入 exe 路径；false 删除注册表值）
+fn set_autostart(enable: bool) -> bool {
+    let key = format!(r"HKCU\{}", RUN_KEY);
+    let output = if enable {
+        let exe = std::env::current_exe().unwrap_or_default();
+        let path = exe.to_string_lossy().replace('/', "\\");
+        std::process::Command::new("reg")
+            .args([
+                "add",
+                &key,
+                "/v",
+                RUN_VALUE,
+                "/t",
+                "REG_SZ",
+                "/d",
+                &format!("\"{}\"", path),
+                "/f",
+            ])
+            .output()
+    } else {
+        std::process::Command::new("reg")
+            .args(["delete", &key, "/v", RUN_VALUE, "/f"])
+            .output()
+    };
+    output.map(|o| o.status.success()).unwrap_or(false)
+}
+
 /// 当日秒数（UTC 无关，本地当日 0 点起的秒，用于定时触发比较）
 fn now_seconds_of_day() -> u64 {
     let d = std::time::SystemTime::now()
@@ -337,6 +377,7 @@ struct App {
     cancel: Arc<AtomicBool>,
     hotkey_manager: Option<GlobalHotKeyManager>,
     hotkey: HotKey,
+    autostart: bool,
     ctx: egui::Context,
 }
 
@@ -360,12 +401,14 @@ impl App {
                 ));
             }
         }
+        let autostart = autostart_enabled();
         App {
             cfg,
             shared,
             cancel: Arc::new(AtomicBool::new(false)),
             hotkey_manager: manager,
             hotkey,
+            autostart,
             ctx,
         }
     }
@@ -673,6 +716,33 @@ impl eframe::App for App {
                     // 记录日志
                     ui.add_space(4.0);
                     ui.checkbox(&mut self.cfg.record, t(cn, "记录日志", "Record Logs"));
+
+                    // 开机自启（注册表 HKCU Run）
+                    ui.add_space(4.0);
+                    let mut autostart = self.autostart;
+                    if ui
+                        .checkbox(&mut autostart, t(cn, "开机自启", "Auto Start"))
+                        .on_hover_text(t(
+                            cn,
+                            "登录 Windows 后自动启动（写注册表 HKCU Run）",
+                            "Launch automatically at login (HKCU Run)",
+                        ))
+                        .changed()
+                    {
+                        if set_autostart(autostart) {
+                            self.autostart = autostart;
+                            self.shared.lock().unwrap().logs.push(if autostart {
+                                t(cn, "已开启开机自启", "Auto start enabled").to_string()
+                            } else {
+                                t(cn, "已关闭开机自启", "Auto start disabled").to_string()
+                            });
+                        } else {
+                            self.shared.lock().unwrap().logs.push(
+                                t(cn, "⚠️ 开机自启设置失败", "⚠️ Auto start setting failed")
+                                    .to_string(),
+                            );
+                        }
+                    }
 
                     ui.add_space(4.0);
                 });
